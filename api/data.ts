@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import fetch from 'node-fetch';
 
-const BIN_ID = '6713c6caacd3cb34a899b262 '; 
+const BIN_ID = '6713c6caacd3cb34a899b262'; 
 const API_KEY = '$2a$10$tLeRimVEHOxU0NpB.1oNm.AfMTykeajNJofXZAy.wdnbpBgUVRZue'; 
 
 export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
