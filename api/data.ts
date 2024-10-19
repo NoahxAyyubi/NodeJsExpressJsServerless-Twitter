@@ -6,7 +6,7 @@ const API_KEY = '$2a$10$tLeRimVEHOxU0NpB.1oNm.AfMTykeajNJofXZAy.wdnbpBgUVRZue';
 
 export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   try {
-    const response = await fetch(`https://api.jsonbin.io/v3/bins/${BIN_ID}`, {
+    const response = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': API_KEY // Include API Key for authentication
