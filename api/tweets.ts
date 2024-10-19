@@ -11,56 +11,60 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     // Validate the incoming request
     if (!newTweet.content) {
       res.status(400).json({ error: 'Content is required.' });
-      return; // Stop further execution
-    }
+    } else {
+      try {
+        // Fetch existing data
+        const fetchResponse = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Master-Key': API_KEY // Use X-Master-Key for authorization
+          }
+        });
 
-    try {
-      // Fetch existing data
-      const fetchResponse = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': API_KEY // Include API Key for authentication
+        if (!fetchResponse.ok) {
+          throw new Error('Failed to fetch data from JSONBin');
         }
-      });
 
-      if (!fetchResponse.ok) throw new Error('Failed to fetch data from JSONBin');
+        const existingData = await fetchResponse.json();
+        const tweets = existingData.record.tweets || [];
 
-      const existingData = await fetchResponse.json();
-      const tweets = existingData.record.tweets || [];
+        // Prepare new tweet object
+        const tweetWithUser = {
+          user: 'Twitter User',
+          userHandle: 'noah_ayyubi',
+          content: newTweet.content,
+          image: null,
+        };
 
-      // Prepare new tweet object
-      const tweetWithUser = {
-        user: 'Twitter User',
-        userHandle: 'noah_ayyubi',
-        content: newTweet.content,
-        image: null,
-      };
+        // Push the new tweet to the array
+        tweets.push(tweetWithUser);
 
-      // Push the new tweet to the array
-      tweets.push(tweetWithUser);
+        // Use POST to create/update the bin with the new data
+        const postResponse = await fetch(`https://api.jsonbin.io/v3/b`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Master-Key': API_KEY,
+          },
+          body: JSON.stringify({ tweets }) // Send the entire tweets array as the new data
+        });
 
-      // Update JSONBin with the new data
-      const updateResponse = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': API_KEY,
-        },
-        body: JSON.stringify({ tweets }) // Update the record with the new tweets array
-      });
+        if (!postResponse.ok) {
+          throw new Error('Failed to post data to JSONBin');
+        }
 
-      if (!updateResponse.ok) throw new Error('Failed to update data on JSONBin');
-
-      res.status(201).json(tweetWithUser);
-    } catch (err) {
-      console.error(err);
-      res.status(500).send('Error saving tweet to JSONBin');
+        res.status(201).json(tweetWithUser); // Respond with the created tweet
+      } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Error saving tweet to JSONBin' }); // Return error message in JSON format
+      }
     }
   } else {
     res.setHeader('Allow', ['POST']);
-    res.status(405).end(`Method ${req.method} Not Allowed`);
+    res.status(405).json({ error: `Method ${req.method} Not Allowed` }); // Return error in JSON format
   }
 }
+
 
 
 //------------------------for serverless
