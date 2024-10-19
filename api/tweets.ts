@@ -1,35 +1,34 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import fetch from 'node-fetch';
+import axios from 'axios';
 
 const BIN_ID = '6713c6caacd3cb34a899b262'; 
 const ACCESS_KEY = '$2a$10$tLeRimVEHOxU0NpB.1oNm.AfMTykeajNJofXZAy.wdnbpBgUVRZue'; 
-const API_KEY = '$2a$10$Y2cSsRKOyq5nTYjGxdwiRuBy6GNQdwP1UGjzQ44aBtH18ec5Qhp6a'; 
+const API_KEY = '$2a$10$Y2cSsRKOyq5nTYjGxdwiRuBy6GNQdwP1UGjzQ44aBtH18ec5Qhp6a';
 
-export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
-  if (req.method === 'POST') {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  console.log(`Received ${req.method} request to ${req.url}`);
+
+  if (req.method === 'PUT') {
     const newTweet = req.body;
+    console.log('Received new tweet:', newTweet); // Log the incoming tweet
 
     // Validate the incoming request
     if (!newTweet.content) {
       res.status(400).json({ error: 'Content is required.' });
-      return; // Stop further execution
+      return;
     }
 
     try {
-      // Fetch existing data
-      const fetchResponse = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+      // Fetch the existing tweets from JSONBin
+      const getResponse = await axios.get(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': API_KEY // Include API Key for authentication
-        }
+          'X-Master-Key': ACCESS_KEY,
+        },
       });
 
-      if (!fetchResponse.ok) throw new Error('Failed to fetch data from JSONBin');
+      const tweets = getResponse.data.record.tweets || [];
 
-      const existingData = await fetchResponse.json();
-      const tweets = existingData.record.tweets || [];
-
-      // Prepare new tweet object
+      // Add the new tweet
       const tweetWithUser = {
         user: 'Twitter User',
         userHandle: 'noah_ayyubi',
@@ -37,29 +36,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
         image: null,
       };
 
-      // Push the new tweet to the array
       tweets.push(tweetWithUser);
 
-      // Update JSONBin with the new data
-      const updateResponse = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Access-Key': ACCESS_KEY,
-          'X-Master-Key': API_KEY,
-        },
-        body: JSON.stringify({ tweets }) // Update the record with the new tweets array
-      });
+      // Update the JSONBin with the new list of tweets
+      const putResponse = await axios.put(
+        `https://api.jsonbin.io/v3/b/${BIN_ID}`,
+        { tweets },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Master-Key': ACCESS_KEY,
+            'X-Bin-Versioning': 'false', // Prevents creating new versions unnecessarily
+          },
+        }
+      );
 
-      if (!updateResponse.ok) throw new Error('Failed to update data on JSONBin');
-
-      res.status(201).json(tweetWithUser);
-    } catch (err) {
-      console.error(err);
-      res.status(500).send('Error saving tweet to JSONBin');
+      // Respond with the newly added tweet
+      res.status(200).json(tweetWithUser);
+    } catch (error) {
+      console.error('Error updating JSONBin:', error);
+      res.status(500).send('Error updating JSONBin');
     }
   } else {
-    res.setHeader('Allow', ['POST']);
+    res.setHeader('Allow', ['PUT']);
     res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 }

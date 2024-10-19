@@ -65,7 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
             try {
                 const response = await fetch('/api/tweets', { 
                 //    'http://localhost:3000/tweets' for  local
-                    method: 'POST',
+                    method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'
                     },
