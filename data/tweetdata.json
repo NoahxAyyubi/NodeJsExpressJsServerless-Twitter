@@ -1,0 +1,48 @@
+{
+  "tweets": [
+    {
+      "user": "Noah Ayyubi",
+      "userHandle": "noah_ayyubi",
+      "content": "That's that software engineer money.",
+      "image": "/IMG_0138.png",
+      "date": "2024-10-15T10:00:00Z"
+    },
+    {
+      "user": "Twitter User",
+      "userHandle": "twitter_user",
+      "content": "Leave a tweet! Waaazzzaaap",
+      "image": null,
+      "date": "2024-10-16T15:30:00Z"
+    },
+    {
+      "user": "Twitter User",
+      "userHandle": "noah_ayyubi",
+      "content": "I really just made a back end server after 10 hours. I deserve a ciggar. Please try it out. Saves all tweets, dont spam...",
+      "image": null
+    },
+    {
+      "user": "Twitter User",
+      "userHandle": "noah_ayyubi",
+      "content": "Hello fellow family its saima",
+      "image": null
+    },
+    {
+      "user": "Twitter User",
+      "userHandle": "noah_ayyubi",
+      "content": "chirp added",
+      "image": null
+    },
+    {
+      "user": "Twitter User",
+      "userHandle": "noah_ayyubi",
+      "content": "ceo someday",
+      "image": null
+    },
+    {
+      "user": "Twitter User",
+      "userHandle": "noah_ayyubi",
+      "content": "test",
+      "image": null
+    }
+  ]
+}
