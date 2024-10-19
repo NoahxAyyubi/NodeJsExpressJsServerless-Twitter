@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function fetchTweets() {
         try {
-            const response = await fetch('/data'); // Fetch from your server
+            const response = await fetch('/api/data'); // Fetch from your server
             if (!response.ok) throw new Error('Network response was not ok');
             const data = await response.json();
             // 'http://localhost:3000/data' for local
@@ -63,7 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const newTweet = { content: tweetText };
 
             try {
-                const response = await fetch('/tweets', { 
+                const response = await fetch('/api/tweets', { 
                 //    'http://localhost:3000/tweets' for  local
                     method: 'POST',
                     headers: {
