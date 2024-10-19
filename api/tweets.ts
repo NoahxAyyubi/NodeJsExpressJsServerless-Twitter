@@ -3,6 +3,8 @@ import fs from 'fs';
 import path from 'path';
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
+  console.log(`Received ${req.method} request to ${req.url}`);
+
   if (req.method === 'POST') {
     const newTweet = req.body;
 
