@@ -2,8 +2,8 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import fetch from 'node-fetch';
 
 const BIN_ID = '6713c6caacd3cb34a899b262'; 
-const API_KEY = '$2a$10$tLeRimVEHOxU0NpB.1oNm.AfMTykeajNJofXZAy.wdnbpBgUVRZue'; 
-const API_KEYMASTER = '$2a$10$Y2cSsRKOyq5nTYjGxdwiRuBy6GNQdwP1UGjzQ44aBtH18ec5Qhp6a'; 
+const ACCESS_KEY = '$2a$10$tLeRimVEHOxU0NpB.1oNm.AfMTykeajNJofXZAy.wdnbpBgUVRZue'; 
+const API_KEY = '$2a$10$Y2cSsRKOyq5nTYjGxdwiRuBy6GNQdwP1UGjzQ44aBtH18ec5Qhp6a'; 
 
 export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
   if (req.method === 'POST') {
@@ -45,8 +45,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': API_KEY,
-          'X-Master-Key': API_KEYMASTER,
+          'X-Access-Key': ACCESS_KEY,
+          'X-Master-Key': API_KEY,
         },
         body: JSON.stringify({ tweets }) // Update the record with the new tweets array
       });
