@@ -1,67 +1,75 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import axios from 'axios';
+import fetch from 'node-fetch';
 
 const BIN_ID = '6713c6caacd3cb34a899b262'; 
 const ACCESS_KEY = '$2a$10$tLeRimVEHOxU0NpB.1oNm.AfMTykeajNJofXZAy.wdnbpBgUVRZue'; 
 const API_KEY = '$2a$10$Y2cSsRKOyq5nTYjGxdwiRuBy6GNQdwP1UGjzQ44aBtH18ec5Qhp6a';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  console.log(`Received ${req.method} request to ${req.url}`);
+    console.log(`Received ${req.method} request to ${req.url}`);
 
-  if (req.method === 'PUT') {
-    const newTweet = req.body;
-    console.log('Received new tweet:', newTweet); // Log the incoming tweet
+    if (req.method === 'PUT') {
+        const newTweet = req.body;
+        console.log('Received new tweet:', newTweet);
 
-    // Validate the incoming request
-    if (!newTweet.content) {
-      res.status(400).json({ error: 'Content is required.' });
-      return;
-    }
-
-    try {
-      // Fetch the existing tweets from JSONBin
-      const getResponse = await axios.get(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
-        headers: {
-          'X-Master-Key': ACCESS_KEY,
-        },
-      });
-
-      const tweets = getResponse.data.record.tweets || [];
-
-      // Add the new tweet
-      const tweetWithUser = {
-        user: 'Twitter User',
-        userHandle: 'noah_ayyubi',
-        content: newTweet.content,
-        image: null,
-      };
-
-      tweets.push(tweetWithUser);
-
-      // Update the JSONBin with the new list of tweets
-      const putResponse = await axios.put(
-        `https://api.jsonbin.io/v3/b/${BIN_ID}`,
-        { tweets },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Master-Key': ACCESS_KEY,
-            'X-Bin-Versioning': 'false', // Prevents creating new versions unnecessarily
-          },
+        // Validate the incoming request
+        if (!newTweet.content) {
+            return res.status(400).json({ error: 'Content is required.' });
         }
-      );
 
-      // Respond with the newly added tweet
-      res.status(200).json(tweetWithUser);
-    } catch (error) {
-      console.error('Error updating JSONBin:', error);
-      res.status(500).send('Error updating JSONBin');
+        try {
+            // Step 1: Fetch the existing bin data
+            const existingResponse = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Master-Key': API_KEY,
+                    'X-Access-Key': ACCESS_KEY // Include the access key here
+                }
+            });
+
+            if (!existingResponse.ok) {
+                throw new Error('Failed to fetch existing bin data');
+            }
+
+            const existingData = await existingResponse.json();
+
+            // Step 2: Add the new tweet to the existing data
+            const tweetWithUser = {
+                user: 'Twitter User',
+                userHandle: 'noah_ayyubi',
+                content: newTweet.content,
+                image: null,
+            };
+
+            existingData.tweets.push(tweetWithUser); // Add new tweet
+
+            // Step 3: Update the bin with the new data
+            const updateResponse = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Master-Key': API_KEY,
+                    'X-Access-Key': ACCESS_KEY // Include the access key here
+                },
+                body: JSON.stringify(existingData)
+            });
+
+            if (!updateResponse.ok) {
+                throw new Error('Failed to update the bin');
+            }
+
+            const updatedTweet = await updateResponse.json();
+            res.status(200).json(updatedTweet);
+        } catch (error) {
+            console.error('Error processing tweet:', error);
+            res.status(500).json({ error: 'Internal Server Error' });
+        }
+    } else {
+        res.setHeader('Allow', ['PUT']);
+        res.status(405).end(`Method ${req.method} Not Allowed`);
     }
-  } else {
-    res.setHeader('Allow', ['PUT']);
-    res.status(405).end(`Method ${req.method} Not Allowed`);
-  }
 }
+
 
 
 //------------------------for serverless
