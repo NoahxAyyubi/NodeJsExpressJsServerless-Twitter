@@ -1,49 +1,52 @@
-//to write on json file u can only store it in tmp for a short session :(
+// writes only on tmp serverless has no writing only reading
+
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import fs from 'fs';
 import path from 'path';
 
-export default function handler(req: VercelRequest, res: VercelResponse) {
-  console.log(`Received ${req.method} request to ${req.url}`);
+// Define paths
+const DATA_PATH = path.join(__dirname, '..', 'data', 'tweetdata.json');
+const TMP_PATH = '/tmp/tweetdata.tmp'; // Temporary path
 
-  if (req.method === 'POST') {
-    const newTweet = req.body;
-    console.log('Received new tweet:', newTweet); // Log the incoming tweet
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+    console.log(`Received ${req.method} request to ${req.url}`);
 
-    // Validate the incoming request
-    if (!newTweet.content) {
-      return res.status(400).json({ error: 'Content is required.' });
-    }
+    if (req.method === 'POST') {
+        const newTweet = req.body;
+        console.log('Received new tweet:', newTweet); // Log the incoming tweet
 
-    fs.readFile(path.join(__dirname, '..', 'data', 'tweetdata.json'), 'utf8', (err, data) => {
-      if (err) {
-        console.error('Error reading tweetdata.json:', err);
-        res.status(500).send('Error loading tweetdata.json');
-        return;
-      }
-
-      const tweets = JSON.parse(data);
-      const tweetWithUser = {
-        user: 'Twitter User',
-        userHandle: 'noah_ayyubi',
-        content: newTweet.content,
-        image: null,
-      };
-
-      tweets.tweets.push(tweetWithUser);
-
-      fs.writeFile(path.join(__dirname, '..', 'data', 'tweetdata.json'), JSON.stringify(tweets, null, 2), (err) => {
-        if (err) {
-          console.error('Error saving tweetdata.json:', err);
-          res.status(500).send('Error saving tweetdata.json');
-          return;
+        // Validate the incoming request
+        if (!newTweet.content) {
+            return res.status(400).json({ error: 'Content is required.' });
         }
 
-        res.status(201).json(tweetWithUser);
-      });
-    });
-  } else {
-    res.setHeader('Allow', ['POST']);
-    res.status(405).end(`Method ${req.method} Not Allowed`);
-  }
+        try {
+            // Read existing tweets from tweetdata.json
+            const data = await fs.promises.readFile(DATA_PATH, 'utf8');
+            const tweets = JSON.parse(data);
+
+            // Create a tweet object with user info
+            const tweetWithUser = {
+                user: 'Twitter User',
+                userHandle: 'noah_ayyubi',
+                content: newTweet.content,
+                image: null,
+            };
+
+            // Add the new tweet to the existing tweets array
+            tweets.tweets.push(tweetWithUser);
+
+            // Save to the temporary file (or you could save back to original JSON)
+            await fs.promises.writeFile(TMP_PATH, JSON.stringify(tweets, null, 2));
+
+            // Return the new tweet
+            res.status(201).json(tweetWithUser);
+        } catch (err) {
+            console.error('Error handling tweet:', err);
+            res.status(500).send('Error handling tweet');
+        }
+    } else {
+        res.setHeader('Allow', ['POST']);
+        res.status(405).end(`Method ${req.method} Not Allowed`);
+    }
 }
